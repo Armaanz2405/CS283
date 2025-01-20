@@ -19,7 +19,6 @@ void word_print(char *, int);
 int replace_substring(char *, int, char *, char *);
 
 int setup_buff(char *buff, char *user_str, int len) {
-    //TODO: #4:  Implement the setup buff as per the directions
     int i = 0, j = 0;
     char prev_char = ' '; // Tracks consecutive spaces
 
@@ -66,7 +65,7 @@ void usage(char *exename){
 }
 
 int count_words(char *buff, int len, int str_len) {
-    (void)len; // I ended up not using len
+    (void)len; // Mark len as unused to suppress the warning
     int word_count = 0;
     int in_word = 0;
 
@@ -187,9 +186,8 @@ int replace_substring(char *buff, int len, char *target, char *replacement) {
     }
 
     if (!found) {
-        // If no match is found, exit with status 3
-        printf("Error: Substring '%s' not found in the input string.\n", target);
-        return 3;
+        printf("Not Implemented!\n");
+        return 3; // Exit with error code 3 (service error)
     }
 
     // Fill the rest of the buffer with dots
@@ -235,7 +233,6 @@ int main(int argc, char *argv[]){
     //TODO:  #2 Document the purpose of the if statement below
     //      PLACE A COMMENT BLOCK HERE EXPLAINING
     //      Ensures that the user provided a string for options other than 'h'.
-    //      Basically saying that the user provided 3 arguments.
     if (argc < 3){
         usage(argv[0]);
         exit(1);
@@ -244,7 +241,7 @@ int main(int argc, char *argv[]){
     input_string = argv[2]; //capture the user input string
 
     //TODO:  #3 Allocate space for the buffer using malloc and
-    //          handle error if malloc fails by exiting with a 
+    //          handle error if malloc fails by exiting with a
     //          return code of 99
     // CODE GOES HERE FOR #3
     buff = (char *)malloc(BUFFER_SZ);
@@ -264,7 +261,7 @@ int main(int argc, char *argv[]){
             rc = count_words(buff, BUFFER_SZ, user_str_len);  //you need to implement
             if (rc < 0){
                 printf("Error counting words, rc = %d", rc);
-		free(buff);
+                free(buff);
                 exit(2);
             }
             printf("Word Count: %d\n", rc);
@@ -272,35 +269,27 @@ int main(int argc, char *argv[]){
 
         //TODO:  #5 Implement the other cases for 'r' and 'w' by extending
         //       the case statement options
-	//
-	//       I just want to say that I coded all my output formatting
-	//       according to what the bats test.sh file required, to
-	//       make sure all of the tests pass.
-	case 'r':
+        case 'r':
             reverse_string(buff, user_str_len);
             break;
         case 'w':
             word_print(buff, user_str_len);
             break;
-	case 'x':
-    		if (argc < 5) {
-        		printf("Error: Missing arguments for search and replace.\n");
-        		free(buff);
-        		exit(1);
-    		}
-    		char *target = argv[3];
-    		char *replacement = argv[4];
-    		rc = replace_substring(buff, BUFFER_SZ, target, replacement);
-    		if (rc == 3) { // Substring not found
-        		free(buff);
-        		exit(3);
-    		}
-    		if (rc < 0) { // Buffer overflow
-        		printf("Buffer overflow occurred during replacement.\n");
-        		free(buff);
-        		exit(2);
-    		}
-    		break;
+        case 'x':
+                if (argc < 5) {
+                        printf("Error: Missing arguments for search and replace.\n");
+                        free(buff);
+                        exit(1);
+                }
+                char *target = argv[3];
+                char *replacement = argv[4];
+                rc = replace_substring(buff, BUFFER_SZ, target, replacement);
+                if (rc < 0) {
+                        printf("Buffer overflow occurred during replacement.\n");
+                        free(buff);
+                        exit(2);
+                }
+                break;
         default:
             usage(argv[0]);
             exit(1);
@@ -312,12 +301,12 @@ int main(int argc, char *argv[]){
     exit(0);
 }
 
-//TODO:  #7  Notice all of the helper functions provided in the 
+//TODO:  #7  Notice all of the helper functions provided in the
 //          starter take both the buffer as well as the length.  Why
 //          do you think providing both the pointer and the length
-//          is a good practice, after all we know from main() that 
+//          is a good practice, after all we know from main() that
 //          the buff variable will have exactly 50 bytes?
-//  
+//
 //          PLACE YOUR ANSWER HERE
 //          Providing both ensures safety and clarity. The length avoids potential
 //          overruns and allows functions to operate only on the relevant portion
