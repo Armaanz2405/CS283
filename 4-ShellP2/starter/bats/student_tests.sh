@@ -53,3 +53,10 @@ EOF
   [ "$last_char" -eq 2 ]
 }
 
+@test "rc built-in returns correct exit code after success" {
+  run bash -c 'echo -e "echo Hello\rc" | ./dsh'
+
+  [ "$status" -eq 0 ]
+  last_char=$(echo -n "$output" | tail -c 1)
+  [ "$last_char" -eq 0 ]
+}
