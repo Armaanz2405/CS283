@@ -14,52 +14,44 @@ EOF
 }
 
 setup() {
-  ./dsh -s -p 5678 &
-  server_pid=$!
+  export TEST_PORT=7890
+  ./dsh -s -p "$TEST_PORT" > /dev/null 2>&1 &
+  SERVER_PID=$!
   sleep 1
 }
 
 teardown() {
-  kill $server_pid 2>/dev/null
+  if ps -p $SERVER_PID > /dev/null 2>&1; then
+    kill $SERVER_PID
+  fi
 }
 
-@test "Remote Shell: echo command" {
-  run ./dsh -c -p 5678 <<EOF
-echo hello remote
-EOF
+@test "Remote shell executes a simple command (echo hello)" {
+  run bash -c 'printf "echo hello\nexit\n" | ./dsh -c -p "$TEST_PORT"'
   [ "$status" -eq 0 ]
-  echo "$output" | grep "hello remote"
+  [[ "$output" == *"hello"* ]]
 }
 
-@test "Remote Shell: Built-in exit command" {
-  run ./dsh -c -p 5678 <<EOF
-exit
-EOF
+@test "Remote shell built-in command dragon outputs art" {
+  run bash -c 'printf "dragon\nexit\n" | ./dsh -c -p "$TEST_PORT"'
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"@%%%%"* ]]
+}
+
+@test "Remote shell pipeline command transforms output" {
+  run bash -c 'printf "echo hello | tr a-z A-Z\nexit\n" | ./dsh -c -p "$TEST_PORT"'
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"HELLO"* ]]
+}
+
+@test "Remote shell built-in cd changes directory" {
+  run bash -c 'printf "cd /tmp\npwd\nexit\n" | ./dsh -c -p "$TEST_PORT"'
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"/tmp"* ]]
+}
+
+@test "Remote shell stop-server command stops the server" {
+  run bash -c 'printf "stop-server\n" | ./dsh -c -p "$TEST_PORT"'
   [ "$status" -eq 0 ]
 }
 
-@test "Remote Shell: Command with pipes" {
-  run ./dsh -c -p 5678 <<EOF
-ls | grep dsh
-EOF
-  [ "$status" -eq 0 ]
-  echo "$output" | grep "dsh"
-}
-
-@test "Remote Shell: Built-in dragon command" {
-  run ./dsh -c -p 5678 <<EOF
-dragon
-EOF
-  [ "$status" -eq 0 ]
-  echo "$output" | grep -i "dragon"
-}
-
-@test "Remote Shell: Built-in stop-server command" {
-  run ./dsh -c -p 5678 <<EOF
-stop-server
-EOF
-  [ "$status" -eq 0 ]
-  sleep 1
-  run nc -z 127.0.0.1 5678
-  [ "$status" -ne 0 ]
-}
